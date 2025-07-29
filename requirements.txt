@@ -18,11 +18,11 @@ jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 kiwisolver==1.4.7
 MarkupSafe==3.0.2
-matplotlib==3.9.4
+matplotlib==3.7.2
 narwhals==2.0.0
-numpy==2.0.2
+numpy==1.26.4
 packaging==25.0
-pandas==2.3.1
+pandas==2.1.4
 pillow==11.3.0
 protobuf==6.31.1
 pyarrow==21.0.0
