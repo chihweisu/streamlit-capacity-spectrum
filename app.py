@@ -139,7 +139,8 @@ def setup_ui():
     }))
 
     st.header("📄 Step 1：貼上樓層資料")
-    floor_data = st.text_area("...", placeholder="100\t1\n...", height=150, label_visibility="collapsed")
+    st.markdown("請貼上兩欄資料：**Weight** (tf) 與 **Mode Shape (φ)**。")
+    floor_data = st.text_area("...", placeholder="100.0\t1\n120.0\t0.89\n115.0\t0.66\n...", height=150, label_visibility="collapsed")
     W, PF1, ALPHA1, df_floor = None, None, None, None
     if floor_data:
         try:
@@ -157,7 +158,8 @@ def setup_ui():
         except Exception as e: st.error(f"❌ 樓層資料讀取失敗: {e}")
 
     st.header("📄 Step 2：貼上容量曲線資料")
-    curve_data = st.text_area("...", placeholder="0\t0\n0.1\t1000\n...", height=150, label_visibility="collapsed")
+    st.markdown("請貼上兩欄資料：**Displacement** (m) 與 **Base Shear** (tf)。")
+    curve_data = st.text_area("...", placeholder="0\t0\n0.1\t130\n0.2\t280\n...", height=150, label_visibility="collapsed")
     df_curve = None
     if curve_data:
         try:
@@ -175,7 +177,8 @@ def setup_ui():
             shear = cols[1].number_input(f"{key} Base Shear (tf)", key=f"{key}_shear", value=0.0, format="%.2f")
             if disp > 0 and shear > 0: special_points[key] = (disp, shear)
 
-    st.header("📄 Step 3：容量震譜 Sd-Sa")
+    st.header("📄 Step 3：容量震譜")
+    st.markdown("請貼上或自動轉換容量震譜資料：**Sd** (m) 與 **Sa** (g)。")
     if 'converted_spectrum_data_str' not in st.session_state: st.session_state.converted_spectrum_data_str = None
     col_generate, _ = st.columns([1, 5])
     with col_generate:
@@ -194,7 +197,7 @@ def setup_ui():
             else: st.warning("⚠️ 請先完成 Step 1 和 Step 2")
 
     initial_text = st.session_state.converted_spectrum_data_str if st.session_state.converted_spectrum_data_str else ""
-    spectrum_data = st.text_area("...", value=initial_text, placeholder="0.0\t0.0\n...", height=150, label_visibility="collapsed")
+    spectrum_data = st.text_area("...", value=initial_text, placeholder="0.00\t0.00\n0.05\t0.07\n0.07\t0.13\n...", height=150, label_visibility="collapsed")
     if st.session_state.converted_spectrum_data_str: st.session_state.converted_spectrum_data_str = None
     
     if spectrum_data:
@@ -456,7 +459,7 @@ def main():
     
     W, PF1, ALPHA1, df_curve, params, special_points = setup_ui()
 
-    if st.button("📌 Plot Capacity Spectrum & Performance Point"):
+    if st.button("📈 Plot Capacity Spectrum & Performance Point"):
         st.session_state.update({'performance_point_status': None, 'performance_point_results': None, 
                                  'fig_performance_point': None, 'fig_ap_curve_data': None, 
                                  'fig_ap_curve': None, 'iteration_data': [], 'ap_debug_dataframe': None,
