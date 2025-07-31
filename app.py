@@ -128,7 +128,7 @@ def setup_ui():
         st.subheader("請輸入密碼以繼續")
         password_input = st.text_input("密碼", type="password")
         if st.button("登入"):
-            if password_input == "chihwei": st.session_state['logged_in'] = True; st.rerun()
+            if password_input == st.secrets["APP_PASSWORD"]: st.session_state['logged_in'] = True; st.rerun()
             else: st.error("密碼錯誤，請重試。")
         st.stop()
     
