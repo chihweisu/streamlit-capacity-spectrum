@@ -278,8 +278,13 @@ def run_analysis(W, PF1, ALPHA1, df_spectrum, params: AnalysisParameters, fig_si
             # 中週期：使用 B1 在分母
             Sa_adjusted = params.s_d1 / (B1_initial * t)
         else:
-            # 長週期：使用 Bs 在分母
-            Sa_adjusted = 0.4 * params.s_ds / Bs_initial
+            # 長週期：根據 Type 決定
+            if params.demand_spectrum_type == "Type 1":
+                # Type 1: 直接使用長週期公式
+                Sa_adjusted =  params.s_d1 / (B1_initial * t)
+            else:
+                # Type 2: （不能低於短週期平台值）
+                Sa_adjusted = 0.4 * params.s_ds / Bs_initial
         
         Sa_demand_initial.append(Sa_adjusted)
     # ===== 新增結束 =====
