@@ -78,7 +78,7 @@ def generate_ap_curve(capacity_sd, capacity_sa, params: AnalysisParameters, m_st
             continue
         
         idx = i + 1; x_cal, y_cal = capacity_sd[:idx], capacity_sa[:idx]
-        area_0 = np.trapz(y_cal, x_cal)
+        area_0 = np.trapezoid(y_cal, x_cal)
         math_b = sd_i * m_stiffness - sa_i
         dy = (2 * area_0 - sd_i * sa_i) / math_b if abs(math_b) > 1e-9 else 0
         ay = m_stiffness * dy
@@ -278,7 +278,7 @@ def run_analysis(W, PF1, ALPHA1, df_spectrum, params: AnalysisParameters, fig_si
     for trial in range(max_iter):
         api, x_slice, y_slice = find_api_and_area_slice(dpi, Sa_interp, Sd_interp, min_sd_raw, max_sd_raw)
         if api is None: log_message(f"❌ 迭代 {trial+1}: 試算點位移超出範圍。", level='error'); st.session_state.performance_point_status="not_found"; break
-        area = np.trapz(y_slice, x_slice)
+        area = np.trapezoid(y_slice, x_slice)
         dy = (2*area - dpi*api) / (dpi*m - api) if abs(dpi*m - api) > 1e-9 else 0
         ay = m * dy
         if dy <= 0 or ay <= 0: log_message(f"⚠️ 迭代 {trial+1}: 等效雙線性系統無效。", level='warning'); st.session_state.performance_point_status="not_found"; break
