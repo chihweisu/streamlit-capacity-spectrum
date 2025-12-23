@@ -252,8 +252,28 @@ def run_analysis(W, PF1, ALPHA1, df_spectrum, params: AnalysisParameters, fig_si
     else: m = np.max(secant_stiffnesses)
 
     T = np.arange(0.01, 6.5, 0.01)
-    if params.demand_spectrum_type == "Type 1": Sa_demand_initial = [2.5*params.Ca if t<params.T_M else params.Cv/t for t in T]
-    else: Sa_demand_initial = [2.5*params.Ca if t<params.T_M else max(params.Ca, params.Cv/t) for t in T]
+    
+    # ===== 新增：根據初始阻尼比調整需求震譜 =====
+    initial_damping_ratio_decimal = params.initial_damp_ratio / 100.0
+    damping_table = np.array([0.0, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 10.0])
+    bs_table = np.array([0.8, 0.8, 1.0, 1.33, 1.6, 1.79, 1.87, 1.93, 1.93])
+    b1_table = np.array([0.8, 0.8, 1.0, 1.25, 1.5, 1.63, 1.7, 1.75, 1.75])
+    
+    Bs_initial = np.interp(initial_damping_ratio_decimal, damping_table, bs_table)
+    B1_initial = np.interp(initial_damping_ratio_decimal, damping_table, b1_table)
+    
+    # 調整 Ca, Cv 和 T_M
+    Ca_adjusted = params.Ca * Bs_initial
+    Cv_adjusted = params.Cv * Bs_initial
+    T_M_adjusted = (params.s_d1 * Bs_initial) / (params.s_ds * B1_initial) if (params.s_ds * B1_initial) > 0 else float('inf')
+    
+    # 生成初始需求震譜（已根據阻尼比調整）
+    if params.demand_spectrum_type == "Type 1": 
+        Sa_demand_initial = [2.5*Ca_adjusted if t<T_M_adjusted else Cv_adjusted/t for t in T]
+    else: 
+        Sa_demand_initial = [2.5*Ca_adjusted if t<T_M_adjusted else max(Ca_adjusted, Cv_adjusted/t) for t in T]
+    # ===== 新增結束 =====
+
     Sd_demand_initial = [(t/(2*math.pi))**2 * sa * 9.81 for t, sa in zip(T, Sa_demand_initial)]
     
     dpi, dpi_found = 0.0, False
