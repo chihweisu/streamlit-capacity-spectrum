@@ -262,16 +262,26 @@ def run_analysis(W, PF1, ALPHA1, df_spectrum, params: AnalysisParameters, fig_si
     Bs_initial = np.interp(initial_damping_ratio_decimal, damping_table, bs_table)
     B1_initial = np.interp(initial_damping_ratio_decimal, damping_table, b1_table)
     
-    # 調整 Ca, Cv 和 T_M
-    Ca_adjusted = params.Ca * Bs_initial
-    Cv_adjusted = params.Cv * Bs_initial
-    T_M_adjusted = (params.s_d1 * Bs_initial) / (params.s_ds * B1_initial) if (params.s_ds * B1_initial) > 0 else float('inf')
+    # 計算 T0（短週期與中週期的分界點）
+    T0_initial = (params.s_d1 * Bs_initial) / (params.s_ds * B1_initial) if (params.s_ds * B1_initial) > 0 else float('inf')
     
-    # 生成初始需求震譜（已根據阻尼比調整）
-    if params.demand_spectrum_type == "Type 1": 
-        Sa_demand_initial = [2.5*Ca_adjusted if t<T_M_adjusted else Cv_adjusted/t for t in T]
-    else: 
-        Sa_demand_initial = [2.5*Ca_adjusted if t<T_M_adjusted else max(Ca_adjusted, Cv_adjusted/t) for t in T]
+    # 依照週期範圍使用不同的調整係數生成初始需求震譜
+    Sa_demand_initial = []
+    for t in T:
+        if t <= 0.2 * T0_initial:
+            # 較短週期：使用 Bs 在分母
+            Sa_adjusted = params.s_ds * (0.4 + (1/Bs_initial - 0.4) * t / (0.2 * T0_initial))
+        elif 0.2 * T0_initial < t <= T0_initial:
+            # 短週期：使用 Bs 在分母
+            Sa_adjusted = params.s_ds / Bs_initial
+        elif T0_initial < t <= 2.5 * T0_initial:
+            # 中週期：使用 B1 在分母
+            Sa_adjusted = params.s_d1 / (B1_initial * t)
+        else:
+            # 長週期：使用 Bs 在分母
+            Sa_adjusted = 0.4 * params.s_ds / Bs_initial
+        
+        Sa_demand_initial.append(Sa_adjusted)
     # ===== 新增結束 =====
 
     Sd_demand_initial = [(t/(2*math.pi))**2 * sa * 9.81 for t, sa in zip(T, Sa_demand_initial)]
